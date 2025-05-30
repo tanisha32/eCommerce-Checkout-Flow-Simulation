@@ -60,6 +60,7 @@
             height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: opacity 0.3s ease;
         }
 
         .product-details h1 {
@@ -189,6 +190,10 @@
             color: #565959;
         }
 
+        .color-changing {
+            opacity: 0.7;
+        }
+
         @media (max-width: 768px) {
             .product-container {
                 grid-template-columns: 1fr;
@@ -209,7 +214,7 @@
     <div class="container">
         <div class="product-container">
             <div class="product-image">
-                <img src="https://m.media-amazon.com/images/I/61oqO1AMbdL._SX679_.jpg" alt="Sony WH-1000XM4 Wireless Headphones" id="product-img">
+                <img src="https://m.media-amazon.com/images/I/61oqO1AMbdL.SX679.jpg" alt="Sony WH-1000XM4 Wireless Headphones" id="product-img">
             </div>
             <div class="product-details">
                 <h1 id="product-title">Sony WH-1000XM4 Wireless Noise Canceling Headphones</h1>
@@ -285,15 +290,49 @@
     </div>
 
     <script>
-        // Product data
+        // Product data with color variants
         const productData = {
             id: 1,
             title: "Sony WH-1000XM4 Wireless Noise Canceling Headphones",
             price: 22990,
             description: "Industry-leading noise canceling with Dual Noise Sensor technology. Next-level music with Edge-AI, co-developed with Sony Music Studios Tokyo. Up to 30-hour battery life with quick charge.",
-            image: "https://m.media-amazon.com/images/I/31+1OdrDX+L._SY300_SX300_.jpg",
-            inventory: 10
+            inventory: 10,
+            colorVariants: {
+                Black: {
+                    image: "https://m.media-amazon.com/images/I/61oqO1AMbdL.SX679.jpg",
+                    thumbnailImage: "https://m.media-amazon.com/images/I/31+1OdrDX+L.SY300_SX300.jpg"
+                },
+                Silver: {
+                    image: "https://m.media-amazon.com/images/I/61UgZSYRllL.jpg",
+                    thumbnailImage: "https://m.media-amazon.com/images/I/61UgZSYRllL.jpg"
+                },
+                Blue: {
+                    image: "https://helios-i.mashable.com/imagery/articles/069XXGMZbgBwDF3Dw9MozUq/hero-image.fill.size_1200x1200.v1744645553.png",
+                    thumbnailImage: "https://helios-i.mashable.com/imagery/articles/069XXGMZbgBwDF3Dw9MozUq/hero-image.fill.size_1200x1200.v1744645553.png"
+                }
+            }
         };
+
+        // Function to change product image based on color selection
+        function changeProductImage(color) {
+            const productImg = document.getElementById('product-img');
+            const newImageSrc = productData.colorVariants[color].image;
+            
+            // Add fade effect during transition
+            productImg.classList.add('color-changing');
+            
+            setTimeout(() => {
+                productImg.src = newImageSrc;
+                productImg.alt = `Sony WH-1000XM4 Wireless Headphones - ${color}`;
+                productImg.classList.remove('color-changing');
+            }, 150);
+        }
+
+        // Event listener for color selection
+        document.getElementById('color-select').addEventListener('change', function() {
+            const selectedColor = this.value;
+            changeProductImage(selectedColor);
+        });
 
         function proceedToCheckout() {
             // Get selected values
@@ -305,28 +344,42 @@
             const tax = subtotal * 0.08; // 8% tax
             const total = subtotal + tax;
 
-            // Create order data
+            // Create order data with updated image based on color
             const orderData = {
-                product: productData,
+                product: {
+                    ...productData,
+                    image: productData.colorVariants[selectedColor].thumbnailImage
+                },
                 variant: selectedColor,
                 quantity: selectedQuantity,
                 subtotal: subtotal,
                 tax: tax,
                 total: total
             };
-
-            // Store in localStorage for the checkout page
+             // Store in localStorage for the checkout page
             localStorage.setItem('orderData', JSON.stringify(orderData));
 
             // Redirect to checkout page
             window.location.href = 'checkout.html';
+
+            // In a real application, you would store this data
+            // Since we can't use localStorage in artifacts, we'll just show an alert
+            alert(`Order prepared!\nProduct: ${productData.title}\nColor: ${selectedColor}\nQuantity: ${selectedQuantity}\nTotal: ₹${total.toFixed(2)}`);
+            
+            console.log('Order Data:', orderData);
         }
 
         // Update price when quantity changes
         document.getElementById('quantity-select').addEventListener('change', function() {
             const quantity = parseInt(this.value);
             const newPrice = productData.price * quantity;
-            document.getElementById('product-price').textContent = `₹${newPrice.toFixed(2)}`;
+            document.getElementById('product-price').textContent = `₹${newPrice.toLocaleString()}`;
+        });
+
+        // Initialize with default color
+        document.addEventListener('DOMContentLoaded', function() {
+            const defaultColor = document.getElementById('color-select').value;
+            changeProductImage(defaultColor);
         });
     </script>
 </body>
